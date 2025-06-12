@@ -3,17 +3,14 @@ name = "eson" # 必填，Worker 名称（建议与项目名一致）
 main = "_worker.js"     # 必填，入口文件路径（若你的入口是 _worker.js，改为 "_worker.js"）
 compatibility_date = "2025-06-12" # 可选，指定 Workers 运行时版本
 
-# 构建配置（如果需要编译代码，如 TypeScript/JavaScript）
-#[build]
-# command = "npm run build" # 构建命令（如使用框架需开启）
-# directory = "dist"        # 构建输出目录
-# minify = true             # 是否压缩代码
+[env.production]
+API_URL = "https://api.example.com"  # 在代码中管理环境变量
 
 # 环境变量（可选，用于配置敏感信息或动态参数）
 #[env.development]
 # KEY = "value"
 
-[env.production]
+#[env.production]
 # KEY = "value"
 
 # 新增 Pages 构建配置
