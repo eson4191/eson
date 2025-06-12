@@ -1,82 +1,47 @@
-name: Auto Update Worker
+name: Auto Deploy Cloudflare Worker
 
 on:
   push:
-    branches:
-      - main
-  schedule:
-    - cron: "0 1 * * *" # 每天凌晨1点运行
-  workflow_dispatch:
+    branches: [main]  # 推送到 main 分支时触发部署
+  workflow_dispatch:  # 支持手动触发
     inputs:
       force_update:
-        description: '是否强制更新（忽略版本检查）'
+        description: '是否强制更新'
         required: false
         default: 'false'
 
 permissions:
-  contents: write
+  contents: write  # 允许写入仓库（如更新版本文件）
 
 jobs:
-  update:
+  deploy-worker:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出仓库
+      - name: 检出仓库代码
         uses: actions/checkout@v4
 
-      - name: 设置环境
-        run: |
-          echo "REPO_URL=https://api.github.com/repos/bia-pain-bache/BPB-Worker-Panel/releases" >> $GITHUB_ENV
-          echo "TARGET_FILE=worker.zip" >> $GITHUB_ENV
+      - name: 安装 Wrangler（最新版）
+        run: npm install -g wrangler@3
 
-      - name: 检查并更新 Worker
+      - name: 检查并更新 Worker（可选，若需自动同步其他仓库版本）
+        if: github.event.inputs.force_update == 'true' || github.ref == 'refs/heads/main'
+        run: |
+          # 这里可保留原有从其他仓库下载 worker.js 的逻辑（若需要）
+          # 例如：wget https://example.com/worker.js -O _worker.js
+          echo "无需更新，直接使用仓库内现有 _worker.js"
+
+      - name: 部署到 Cloudflare Workers
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用 GitHub Token 认证
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}  # Cloudflare 账户 ID
+          CLOUDFLARE_WORKER_TOKEN: ${{ secrets.CLOUDFLARE_WORKER_TOKEN }}  # 部署令牌
         run: |
-          # 日志函数
-          log() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"; }
+          cd "$GITHUB_WORKSPACE"  # 进入仓库根目录
+          wrangler publish  # 自动读取 wrangler.toml 并部署 Worker
+          echo "部署成功！Worker 版本：$(cat version.txt || '未知')"
 
-          log "开始检查更新..."
-
-          # 获取本地版本
-          LOCAL_VERSION=$(cat version.txt 2>/dev/null || echo "")
-          log "本地版本: ${LOCAL_VERSION:-无}"
-
-          # 获取最新 Release
-          log "获取最新 Release 信息..."
-          RESPONSE=$(curl -s --retry 3 -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$REPO_URL")
-          if [ $? -ne 0 ]; then
-            log "ERROR: 无法访问 GitHub API"
-            exit 1
-          fi
-
-          TAG_NAME=$(echo "$RESPONSE" | jq -r '.[0].tag_name')
-          DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.[0].assets[] | select(.name == "'"$TARGET_FILE"'") | .browser_download_url')
-
-          if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" == "null" ]; then
-            log "ERROR: 未找到 $TARGET_FILE"
-            exit 1
-          fi
-          log "最新版本: $TAG_NAME"
-
-          # 判断是否需要更新
-          FORCE_UPDATE=${{ github.event.inputs.force_update || 'false' }}
-          if [ "$LOCAL_VERSION" = "$TAG_NAME" ] && [ "$FORCE_UPDATE" != "true" ]; then
-            log "已是最新版本，无需更新"
-            exit 0
-          fi
-
-          # 下载并更新
-          log "下载 $TARGET_FILE..."
-          wget -q -O "$TARGET_FILE" "$DOWNLOAD_URL"
-          log "解压 $TARGET_FILE..."
-          unzip -o "$TARGET_FILE"
-          rm "$TARGET_FILE"
-          echo "$TAG_NAME" > version.txt
-          log "更新完成，新版本: $TAG_NAME"
-
-      - name: 提交更改
-        if: success() # 仅在更新成功时提交
+      - name: 提交版本更新（可选）
+        if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🔄 自动同步 Worker 版本: ${{ steps.check_update.outputs.tag_name || '未知' }}"
+          commit_message: "🔄 自动部署 Worker 版本: $(cat version.txt || '未知')"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
