@@ -3,21 +3,9 @@ name = "eson" # 必填，Worker 名称（建议与项目名一致）
 main = "_worker.js"     # 必填，入口文件路径（若你的入口是 _worker.js，改为 "_worker.js"）
 compatibility_date = "2025-06-12" # 可选，指定 Workers 运行时版本
 
-[env.production]
-API_URL = "https://api.example.com"  # 在代码中管理环境变量
-
-# 环境变量（可选，用于配置敏感信息或动态参数）
-#[env.development]
-# KEY = "value"
+[secrets]
+UUID = "uuid - secret - name"
+TROJAN_PASSWORD = "trojan - password - secret - name"
 
 #[env.production]
-# KEY = "value"
-
-# 新增 Pages 构建配置
-#[pages]
-#pages_build_output_dir = "."  # 静态文件所在目录（根据实际情况调整，如 "dist"）
-
-# 路由规则（可选，配置自定义路由）
-# [[route]]
-# pattern = "example.com/*"
-# script = "your-worker-name"
+#API_URL = "https://api.example.com"  # 在代码中管理环境变量
