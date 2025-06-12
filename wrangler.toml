@@ -1,11 +1,7 @@
-# wrangler.toml
-name = "eson" # 必填，Worker 名称（建议与项目名一致）
-main = "_worker.js"     # 必填，入口文件路径（若你的入口是 _worker.js，改为 "_worker.js"）
-compatibility_date = "2025-06-12" # 可选，指定 Workers 运行时版本
+name = "eson"          # 必填，Worker 名称
+main = "_worker.js"    # 必填，入口文件
+compatibility_date = "2025-06-12"  # 建议保留
 
-[secrets]
-UUID = "uuid - secret - name"
-TROJAN_PASSWORD = "trojan - password - secret - name"
-
-#[env.production]
-#API_URL = "https://api.example.com"  # 在代码中管理环境变量
+[secrets]              # Workers 加密变量（若需要）
+UUID = "uuid-secret"   # 变量名需与代码一致
+TROJAN_PASSWORD = "password-secret"
