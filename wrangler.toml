@@ -16,6 +16,10 @@ compatibility_date = "2025-06-12" # 可选，指定 Workers 运行时版本
 [env.production]
 # KEY = "value"
 
+# 新增 Pages 构建配置
+[pages]
+pages_build_output_dir = "."  # 静态文件所在目录（根据实际情况调整，如 "dist"）
+
 # 路由规则（可选，配置自定义路由）
 # [[route]]
 # pattern = "example.com/*"
