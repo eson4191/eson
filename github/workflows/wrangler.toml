@@ -1,5 +1,5 @@
 # wrangler.toml
-name = "_worker" # 必填，Worker 名称（建议与项目名一致）
+name = "eson" # 必填，Worker 名称（建议与项目名一致）
 main = "_worker.js"     # 必填，入口文件路径（若你的入口是 _worker.js，改为 "_worker.js"）
 compatibility_date = "2025-06-12" # 可选，指定 Workers 运行时版本
 
