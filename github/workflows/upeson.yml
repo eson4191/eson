@@ -74,6 +74,36 @@ jobs:
           echo "$TAG_NAME" > version.txt
           log "更新完成，新版本: $TAG_NAME"
 
+          #以下是豆包生成合建代码
+        name: Deploy to Cloudflare Workers
+        on:
+          push:
+            branches: [main] # 触发部署的分支（可自定义）
+        jobs:
+          deploy:
+            runs-on: ubuntu-latest
+            steps:
+              - name: Checkout code
+                uses: actions/checkout@v4
+
+              - name: Install Node.js
+                uses: actions/setup-node@v4
+                with:
+                  node-version: 20.x # 建议使用 LTS 版本
+
+              - name: Install Wrangler
+                run: |
+                  npm install -g wrangler@3 # 安装最新的 Wrangler 3.x
+                  wrangler --version # 验证安装（可选）
+
+              - name: Deploy to Cloudflare Workers
+                env:
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} # Cloudflare 账户 ID
+                  CLOUDFLARE_WORKER_TOKEN: ${{ secrets.CLOUDFLARE_WORKER_TOKEN }} # 部署令牌
+                run: |
+                  wrangler deploy --project-name=eson # --project-name 需与 wrangler.toml 中的 name 一致
+              #豆包生成代码中间部分
+
       - name: 提交更改
         if: success() # 仅在更新成功时提交
         uses: stefanzweifel/git-auto-commit-action@v5
